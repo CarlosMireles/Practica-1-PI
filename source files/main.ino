@@ -152,7 +152,7 @@ void comprobarTeclado(int digit){
 
 		if (digitalRead(45) == 0 && digit == 2){
             while (digitalRead(45) == 0){}
-            contador = NumTec.toInt();
+            int contador = NumTec.toInt();
             Serial.print("Contador = ");
 			Serial.println(contador);
             NumTec = "";
@@ -223,58 +223,31 @@ void bottonLeft(){
 
 ISR(INT3_vect){
 		PORTL = DOFF;
-		if (modo == 1){
-			switch(digit){
-				case 0:
-					PORTA = num[contador % 10];
-					PORTL = D4;
-					comprobarTeclado(digit);
-					digit++;
-					break;
-				case 1:
-					PORTA = num[int(contador/10) % 10];
-					PORTL = D3;
-					comprobarTeclado(digit);
-					digit++;
-					break;
-				case 2:
-					PORTA = num[int(contador/100) % 10];
-					PORTL = D2;
-					comprobarTeclado(digit);
-					digit = 0;
-					break;
-			}
-		}
-		else if (modo == 2){
-			switch(digit){
-				case 0:
-					PORTA = num[contador % 10];
-					PORTL = D4;
-					comprobarTeclado(digit);
-					digit++;
-					break;
-				case 1:
-					PORTA = num[int(contador/10) % 10];
-					PORTL = D3;
-					comprobarTeclado(digit);
-					digit = 0;
-					break;
-			}
-		}
-		else if (modo == 3){
-				switch(digit){
-				case 0:
-					PORTA = num[contador % 10];
-					PORTL = D2;
-					comprobarTeclado(digit);
-					digit++;
-					break;
-				case 1:
-					PORTA = num[int(contador/10) % 10];
-					PORTL = D1;
+		switch(digit){
+			case 0:
+				PORTA = num[contador % 10];
+				PORTL = D4;
+				if (modo == 3) PORTL = D2;
+				comprobarTeclado(digit);
+				digit++;
+				break;
+			case 1:
+				PORTA = num[int(contador/10) % 10];
+				PORTL = D3;
+				if (modo == 3) PORTL = D1;
+				comprobarTeclado(digit);
+				digit++;
+				break;
+			case 2:
+				if (modo > 1){
 					comprobarTeclado(digit);
 					digit = 0;
 					break;
 				}
+				PORTA = num[int(contador/100) % 10];
+				PORTL = D2;
+				comprobarTeclado(digit);
+				digit = 0;
+				break;
 		}
 }
