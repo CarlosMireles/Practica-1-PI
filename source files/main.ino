@@ -70,7 +70,6 @@ int incremento = 1;
 int modo_old = 1;
 int modo = 1;
 int digit = 0;
-int inv_digit = 2;
 
 String NumTec;				// String que almacena los numeros introducidos por teclado
 long deltaTime;
