@@ -41,9 +41,9 @@
 
 // Mapeo matricial para las teclas del teclado
 char teclado_map[][3] = { {'1','2','3'},
-                        {'4','5','6'},
-                        {'7','8','9'},
-                        {'*','0','#'}};
+									     {'4','5','6'},
+									     {'7','8','9'},
+									     {'*','0','#'}  };
 
 //  Array que contiene los números del 0-9 para mostrar en el display			
 int num[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F, 0x77, 0x7C, 0x58, 0x5E, 0x79, 0x71};
@@ -70,8 +70,10 @@ int incremento = 1;
 int modo_old = 1;
 int modo = 1;
 int digit = 0;
+int inv_digit = 2;
 
 String NumTec;				// String que almacena los numeros introducidos por teclado
+long deltaTime;
 
 
 void setup() {
@@ -131,31 +133,46 @@ void loop() {
 
 void comprobarTeclado(int digit){
 		if (digitalRead(42) == 0){
-			while (digitalRead(42) == 0){}    
-			NumTec += teclado_map[0][digit];
+			if(millis()-deltaTime > 300){
+				Serial.println(teclado_map[0][digit]);
+				NumTec += teclado_map[0][digit];
+				deltaTime=millis();
+			}
 		}
     
 		if (digitalRead(43) == 0){
-			while (digitalRead(43) == 0){}    
-			NumTec += teclado_map[1][digit];
+			if(millis()-deltaTime > 300){
+				Serial.println(teclado_map[1][digit]);
+				NumTec += teclado_map[1][digit];
+				deltaTime=millis();
+			}
 		}    
 
 		if (digitalRead(44) == 0){
-			while (digitalRead(44) == 0){}    
-			NumTec += teclado_map[2][digit];
+			if(millis()-deltaTime > 300){
+				Serial.println(teclado_map[2][digit]);
+				NumTec += teclado_map[2][digit];
+				deltaTime=millis();
+			}
 		}    
 
-		if (digitalRead(45) == 0 && digit ==1){
-			while (digitalRead(45) == 0){}
-			NumTec += teclado_map[3][digit];
-		}
-
-		if (digitalRead(45) == 0 && digit == 2){
-            while (digitalRead(45) == 0){}
-            int contador = NumTec.toInt();
-            Serial.print("Contador = ");
-			Serial.println(contador);
-            NumTec = "";
+		if (digitalRead(45) == 0){
+			if(millis()-deltaTime > 300){
+				if (digit == 1){
+					Serial.println(teclado_map[3][digit]);
+					NumTec += teclado_map[3][digit]; 						// el 0
+					deltaTime=millis();
+				}
+				else if (digit == 2){
+					int numero = NumTec.toInt();
+					if (numero > 999 or numero < 0){ Serial.println("Introduzca un número entre 0 y 999");}
+					if (numero < 999 and numero >= 0){contador = numero;}
+					Serial.print("Contador = ");
+					Serial.println(contador);
+					NumTec = "";
+					deltaTime=millis();
+				}
+			}
 		}
 }
 
@@ -223,31 +240,75 @@ void bottonLeft(){
 
 ISR(INT3_vect){
 		PORTL = DOFF;
-		switch(digit){
-			case 0:
-				PORTA = num[contador % 10];
-				PORTL = D4;
-				if (modo == 3) PORTL = D2;
-				comprobarTeclado(digit);
-				digit++;
-				break;
-			case 1:
-				PORTA = num[int(contador/10) % 10];
-				PORTL = D3;
-				if (modo == 3) PORTL = D1;
-				comprobarTeclado(digit);
-				digit++;
-				break;
-			case 2:
-				if (modo > 1){
+		if (modo == 1){
+			switch(digit){
+				case 0:
+					PORTA = num[contador % 10];
+					PORTL = D4;
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 1:
+					PORTA = num[int(contador/10) % 10];
+					PORTL = D3;
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 2:
+					PORTA = num[int(contador/100) % 10];
+					PORTL = D2;
 					comprobarTeclado(digit);
 					digit = 0;
 					break;
-				}
-				PORTA = num[int(contador/100) % 10];
-				PORTL = D2;
-				comprobarTeclado(digit);
-				digit = 0;
-				break;
+			}
+		}
+		else if (modo == 2){
+			switch(digit){
+				case 0:
+					PORTA = num[contador % 10];
+					PORTL = D4;
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 1:
+					PORTA = num[int(contador/10) % 10];
+					PORTL = D3;
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 2:
+					PORTA = 0x00;
+					PORTL = D2;
+					comprobarTeclado(digit);
+					digit = 0;
+					break;
+			}
+		}
+		else if (modo == 3){
+			switch(digit){
+				case 0:
+					PORTA = 0x00;
+					PORTL = D4;
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 1:
+					PORTA = 0x00;
+					PORTL = D3;				
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 2:
+					PORTA = num[contador % 10];
+					PORTL = D2;
+					comprobarTeclado(digit);
+					digit++;
+					break;
+				case 3:
+					PORTA = num[int(contador/10) % 10];
+					PORTL = D1;
+					digit = 0;
+					break;
+			}
 		}
 }
